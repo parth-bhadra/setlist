@@ -25,12 +25,20 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>My Setlists</Text>
-        <TouchableOpacity
-          style={styles.allJokesButton}
-          onPress={() => navigation.navigate('JokesList')}
-        >
-          <Text style={styles.allJokesButtonText}>All Jokes</Text>
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => navigation.navigate('Settings')}
+          >
+            <Text style={styles.settingsButtonText}>⚙️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.allJokesButton}
+            onPress={() => navigation.navigate('JokesList')}
+          >
+            <Text style={styles.allJokesButtonText}>All Jokes</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {setlists.length === 0 ? (
@@ -94,6 +102,20 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#333',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  settingsButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+  },
+  settingsButtonText: {
+    fontSize: 20,
   },
   allJokesButton: {
     paddingHorizontal: 16,

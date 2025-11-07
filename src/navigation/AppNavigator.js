@@ -7,6 +7,7 @@ import JokesListScreen from '../screens/JokesListScreen';
 import AddEditJokeScreen from '../screens/AddEditJokeScreen';
 import SetlistDetailScreen from '../screens/SetlistDetailScreen';
 import AddEditSetlistScreen from '../screens/AddEditSetlistScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ const AppNavigator = () => {
         <Stack.Screen name="AddEditJoke" component={AddEditJokeScreen} />
         <Stack.Screen name="SetlistDetail" component={SetlistDetailScreen} />
         <Stack.Screen name="AddEditSetlist" component={AddEditSetlistScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
