@@ -15,7 +15,7 @@ import {
 import { useApp } from '../context/AppContext';
 
 const AddEditSetlistScreen = ({ navigation, route }) => {
-  const { setlistId } = route.params || {};
+  const { setlistId, preselectedJokeId } = route.params || {};
   const { createSetlist, editSetlist, getSetlistById, jokes, getJokeById, reorderJokesInSetlist, addJokeToSetlist, removeJokeFromSetlist } = useApp();
   
   const [name, setName] = useState('');
@@ -35,8 +35,11 @@ const AddEditSetlistScreen = ({ navigation, route }) => {
         setClosing(setlist.closing || '');
         setSetlistJokes(setlist.jokes || []);
       }
+    } else if (preselectedJokeId) {
+      // If creating a new setlist with a preselected joke, add it
+      setSetlistJokes([{ jokeId: preselectedJokeId, segueAfter: '' }]);
     }
-  }, [setlistId]);
+  }, [setlistId, preselectedJokeId]);
 
   const handleSave = async () => {
     if (!name.trim()) {

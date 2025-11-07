@@ -29,6 +29,15 @@ const JokesListScreen = ({ navigation }) => {
     }
   };
 
+  const handleCreateNewSetlist = () => {
+    setShowSetlistModal(false);
+    // Navigate to create setlist screen and pass the joke to add
+    navigation.navigate('AddEditSetlist', { 
+      preselectedJokeId: selectedJoke 
+    });
+    setSelectedJoke(null);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -88,18 +97,40 @@ const JokesListScreen = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add to Setlist</Text>
+            
+            <TouchableOpacity
+              style={styles.createNewSetlistButton}
+              onPress={handleCreateNewSetlist}
+            >
+              <Text style={styles.createNewSetlistButtonText}>
+                ✨ Create New Setlist
+              </Text>
+            </TouchableOpacity>
+
+            {setlists.length > 0 && (
+              <Text style={styles.orDividerText}>or add to existing:</Text>
+            )}
+
             <ScrollView style={styles.setlistList}>
-              {setlists.map((setlist) => (
-                <TouchableOpacity
-                  key={setlist.id}
-                  style={styles.setlistItem}
-                  onPress={() => handleSelectSetlist(setlist.id)}
-                >
-                  <Text style={styles.setlistItemText}>
-                    {setlist.name || 'Unnamed Setlist'}
+              {setlists.length === 0 ? (
+                <View style={styles.noSetlistsContainer}>
+                  <Text style={styles.noSetlistsText}>
+                    No setlists yet. Create one above!
                   </Text>
-                </TouchableOpacity>
-              ))}
+                </View>
+              ) : (
+                setlists.map((setlist) => (
+                  <TouchableOpacity
+                    key={setlist.id}
+                    style={styles.setlistItem}
+                    onPress={() => handleSelectSetlist(setlist.id)}
+                  >
+                    <Text style={styles.setlistItemText}>
+                      {setlist.name || 'Unnamed Setlist'}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              )}
             </ScrollView>
             <TouchableOpacity
               style={styles.cancelButton}
@@ -214,8 +245,35 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
+  createNewSetlistButton: {
+    backgroundColor: '#34C759',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  createNewSetlistButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  orDividerText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
   setlistList: {
     maxHeight: 300,
+  },
+  noSetlistsContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  noSetlistsText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
   setlistItem: {
     padding: 16,

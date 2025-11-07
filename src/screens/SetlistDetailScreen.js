@@ -8,6 +8,8 @@ import {
   Alert,
   Modal,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import JokeCard from '../components/JokeCard';
@@ -173,7 +175,15 @@ const SetlistDetailScreen = ({ navigation, route }) => {
         animationType="slide"
         onRequestClose={() => setEditingSegue(null)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <TouchableOpacity 
+            style={styles.modalDismissArea}
+            activeOpacity={1}
+            onPress={() => setEditingSegue(null)}
+          />
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Segue</Text>
             <TextInput
@@ -200,7 +210,7 @@ const SetlistDetailScreen = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -367,12 +377,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  modalDismissArea: {
+    flex: 1,
+  },
   modalContent: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
     minHeight: 300,
+    maxHeight: '80%',
   },
   modalTitle: {
     fontSize: 20,
