@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { useApp } from '../context/AppContext';
@@ -190,9 +190,10 @@ const SettingsScreen = ({ navigation }) => {
           const joke = jokes.find(j => j.id === jokeItem.jokeId);
           if (joke) {
             text += `${index + 1}. `;
+            if (joke.title) text += `${joke.title}\n   `;
             if (joke.setup) text += `Setup: ${joke.setup}\n   `;
-            if (joke.premise) text += `Premise: ${joke.premise}\n   `;
             if (joke.punchline) text += `Punchline: ${joke.punchline}\n`;
+            if (joke.tags && joke.tags.length > 0) text += `   Tags: ${joke.tags.join(' ')}\n`;
             
             if (jokeItem.segueAfter) {
               text += `   ↪ Segue: ${jokeItem.segueAfter}\n`;

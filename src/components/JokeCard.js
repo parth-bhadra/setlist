@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, AccessibilityInfo } from 'react-native';
 
-const JokeCard = ({ joke, onEdit, onDelete, onPress, showActions = true }) => {
+const JokeCard = ({ joke, onEdit, onDelete, onPress, showActions = true, readTitleOnly = false }) => {
   const handleDelete = () => {
     Alert.alert(
       'Delete Joke',
@@ -14,26 +14,52 @@ const JokeCard = ({ joke, onEdit, onDelete, onPress, showActions = true }) => {
   };
 
   const getFullJokeText = () => {
+    // Include setup, punchline, and tags all together
     let parts = [];
     if (joke.setup) parts.push(joke.setup);
-    if (joke.premise) parts.push(joke.premise);
     if (joke.punchline) parts.push(joke.punchline);
-    return parts.length > 0 ? parts.join(' ') : 'Empty joke';
+    if (joke.tags && joke.tags.length > 0) parts.push(joke.tags.join(' '));
+    return parts.length > 0 ? parts.join(' ') : '';
+  };
+
+  const handleCardPress = () => {
+    // Read the joke when clicked
+    if (readTitleOnly) {
+      // On setlist view, read only title
+      const titleText = joke.title || 'Untitled joke';
+      AccessibilityInfo.announceForAccessibility(titleText);
+    } else {
+      // On all jokes screen, read full joke including tags
+      const fullText = getFullJokeText();
+      AccessibilityInfo.announceForAccessibility(fullText || joke.title || 'Empty joke');
+    }
+    
+    // Then call the original onPress if provided
+    if (onPress) {
+      onPress();
+    }
   };
 
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={onPress}
+      onPress={handleCardPress}
       activeOpacity={0.7}
       accessible={true}
-      accessibilityLabel={getFullJokeText()}
+      accessibilityLabel={joke.title || 'Untitled joke'}
       accessibilityRole="button"
-      accessibilityHint="Tap to edit this joke"
+      accessibilityHint="Tap to read and edit this joke"
     >
       <View style={styles.content}>
-        {joke.setup || joke.premise || joke.punchline ? (
-          <Text style={styles.jokeText}>{getFullJokeText()}</Text>
+        {joke.title ? (
+          <>
+            <Text style={styles.jokeTitle}>{joke.title}</Text>
+            {(joke.setup || joke.punchline || (joke.tags && joke.tags.length > 0)) && (
+              <Text style={styles.jokeText} numberOfLines={3}>
+                {getFullJokeText()}
+              </Text>
+            )}
+          </>
         ) : (
           <Text style={styles.emptyText}>Empty joke</Text>
         )}
@@ -84,10 +110,17 @@ const styles = StyleSheet.create({
   content: {
     marginBottom: 12,
   },
+  jokeTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 8,
+  },
   jokeText: {
     fontSize: 16,
-    color: '#333',
+    color: '#666',
     lineHeight: 24,
+    marginBottom: 8,
   },
   emptyText: {
     fontSize: 16,

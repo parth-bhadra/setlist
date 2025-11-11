@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
+  AccessibilityInfo,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import JokeCard from '../components/JokeCard';
 
 const SetlistDetailScreen = ({ navigation, route }) => {
   const { setlistId } = route.params;
-  const { getSetlistById, getJokesForSetlist, removeJokeFromSetlist, updateSegueInSetlist } = useApp();
-  
-  const [editingSegue, setEditingSegue] = useState(null); // { jokeId, currentSegue }
-  const [segueText, setSegueText] = useState('');
+  const { getSetlistById, getJokesForSetlist, removeJokeFromSetlist } = useApp();
 
   const setlist = getSetlistById(setlistId);
   const jokes = getJokesForSetlist(setlistId);
@@ -47,19 +41,97 @@ const SetlistDetailScreen = ({ navigation, route }) => {
     );
   };
 
-  const openSegueEditor = (jokeId, currentSegue) => {
-    setEditingSegue({ jokeId });
-    setSegueText(currentSegue || '');
-  };
 
-  const saveSegue = async () => {
-    if (editingSegue) {
-      await updateSegueInSetlist(setlistId, editingSegue.jokeId, segueText);
-      setEditingSegue(null);
-      setSegueText('');
+  // Build flat list data including opening, jokes with segues, and closing
+  const buildListData = () => {
+    const data = [];
+    
+    // Add opening if exists
+    if (setlist.opening) {
+      data.push({ type: 'opening', content: setlist.opening });
     }
+    
+    // Add jokes with their segues
+    jokes.forEach((joke, index) => {
+      data.push({ type: 'joke', joke, index });
+      
+      // Add segue if it exists
+      if (joke.segueAfter) {
+        data.push({ type: 'segue', content: joke.segueAfter, jokeId: joke.id });
+      }
+    });
+    
+    // Add closing if exists
+    if (setlist.closing) {
+      data.push({ type: 'closing', content: setlist.closing });
+    }
+    
+    return data;
   };
 
+  const renderCard = ({ item }) => {
+    if (item.type === 'opening') {
+      return (
+        <TouchableOpacity
+          style={styles.textCard}
+          onPress={() => AccessibilityInfo.announceForAccessibility(item.content)}
+          activeOpacity={0.7}
+          accessible={true}
+          accessibilityLabel="Opening"
+          accessibilityHint="Tap to read the opening"
+        >
+          <Text style={styles.cardText}>{item.content}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    if (item.type === 'closing') {
+      return (
+        <TouchableOpacity
+          style={styles.textCard}
+          onPress={() => AccessibilityInfo.announceForAccessibility(item.content)}
+          activeOpacity={0.7}
+          accessible={true}
+          accessibilityLabel="Closing"
+          accessibilityHint="Tap to read the closing"
+        >
+          <Text style={styles.cardText}>{item.content}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    if (item.type === 'segue') {
+      return (
+        <TouchableOpacity
+          style={styles.segueCard}
+          onPress={() => AccessibilityInfo.announceForAccessibility(item.content)}
+          activeOpacity={0.7}
+          accessible={true}
+          accessibilityLabel="Segue"
+          accessibilityHint="Tap to read the segue"
+        >
+          <Text style={styles.segueCardText}>{item.content}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    if (item.type === 'joke') {
+      return (
+        <JokeCard
+          joke={item.joke}
+          onPress={() => {}} // Just read the title, no navigation
+          onEdit={() => navigation.navigate('AddEditJoke', { jokeId: item.joke.id })}
+          onDelete={() => handleRemoveJoke(item.joke.id)}
+          showActions={false}
+          readTitleOnly={true}
+        />
+      );
+    }
+
+    return null;
+  };
+
+  const listData = buildListData();
 
   return (
     <View style={styles.container}>
@@ -83,7 +155,7 @@ const SetlistDetailScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {jokes.length === 0 && !setlist.opening && !setlist.closing ? (
+      {listData.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No content in this setlist</Text>
           <Text style={styles.emptySubtext}>
@@ -98,120 +170,12 @@ const SetlistDetailScreen = ({ navigation, route }) => {
         </View>
       ) : (
         <FlatList
-          data={[
-            { type: 'opening' },
-            ...jokes.map((joke, index) => ({ type: 'joke', joke, index })),
-            { type: 'closing' },
-          ]}
+          data={listData}
           keyExtractor={(item, index) => `${item.type}-${index}`}
-          renderItem={({ item }) => {
-            if (item.type === 'opening' && setlist.opening) {
-              return (
-                <View style={styles.sectionContainer}>
-                  <Text style={styles.sectionLabel}>Opening</Text>
-                  <View style={styles.textCard}>
-                    <Text style={styles.sectionText}>{setlist.opening}</Text>
-                  </View>
-                </View>
-              );
-            }
-
-            if (item.type === 'closing' && setlist.closing) {
-              return (
-                <View style={styles.sectionContainer}>
-                  <Text style={styles.sectionLabel}>Closing</Text>
-                  <View style={styles.textCard}>
-                    <Text style={styles.sectionText}>{setlist.closing}</Text>
-                  </View>
-                </View>
-              );
-            }
-
-            if (item.type === 'joke') {
-              const { joke, index } = item;
-              return (
-                <View>
-                  <View style={styles.jokeNumber}>
-                    <Text style={styles.jokeNumberText}>Joke #{index + 1}</Text>
-                  </View>
-                  <JokeCard
-                    joke={joke}
-                    onPress={() => navigation.navigate('AddEditJoke', { jokeId: joke.id })}
-                    onEdit={() => navigation.navigate('AddEditJoke', { jokeId: joke.id })}
-                    onDelete={() => handleRemoveJoke(joke.id)}
-                    showActions={true}
-                  />
-                  <View style={styles.segueContainer}>
-                    <Text style={styles.segueLabel}>Segue to next:</Text>
-                    {joke.segueAfter ? (
-                      <View style={styles.segueTextContainer}>
-                        <Text style={styles.segueText}>{joke.segueAfter}</Text>
-                      </View>
-                    ) : (
-                      <Text style={styles.noSegueText}>No segue</Text>
-                    )}
-                    <TouchableOpacity
-                      style={styles.editSegueButton}
-                      onPress={() => openSegueEditor(joke.id, joke.segueAfter)}
-                    >
-                      <Text style={styles.editSegueButtonText}>
-                        {joke.segueAfter ? 'Edit Segue' : 'Add Segue'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            }
-
-            return null;
-          }}
+          renderItem={renderCard}
           contentContainerStyle={styles.listContent}
         />
       )}
-
-      <Modal
-        visible={!!editingSegue}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setEditingSegue(null)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
-        >
-          <TouchableOpacity 
-            style={styles.modalDismissArea}
-            activeOpacity={1}
-            onPress={() => setEditingSegue(null)}
-          />
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Segue</Text>
-            <TextInput
-              style={styles.segueInput}
-              value={segueText}
-              onChangeText={setSegueText}
-              placeholder="Enter segue to next joke..."
-              multiline
-              textAlignVertical="top"
-              autoFocus
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelModalButton]}
-                onPress={() => setEditingSegue(null)}
-              >
-                <Text style={styles.cancelModalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveModalButton]}
-                onPress={saveSegue}
-              >
-                <Text style={styles.saveModalButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </View>
   );
 };
@@ -264,78 +228,40 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
   },
-  sectionContainer: {
-    marginBottom: 24,
-  },
-  sectionLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#007AFF',
-    marginBottom: 8,
-  },
   textCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  sectionText: {
+  cardText: {
     fontSize: 16,
     color: '#333',
     lineHeight: 24,
   },
-  jokeNumber: {
-    marginBottom: 8,
-    marginTop: 8,
-  },
-  jokeNumberText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#007AFF',
-  },
-  segueContainer: {
-    marginTop: -8,
-    marginBottom: 16,
-    marginLeft: 16,
-  },
-  segueLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 4,
-  },
-  segueTextContainer: {
+  segueCard: {
     backgroundColor: '#FFF3E0',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    marginLeft: 16,
+    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  segueText: {
-    fontSize: 14,
+  segueCardText: {
+    fontSize: 15,
     color: '#333',
     fontStyle: 'italic',
-  },
-  noSegueText: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-    marginBottom: 8,
-  },
-  editSegueButton: {
-    backgroundColor: '#FF9500',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  editSegueButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    lineHeight: 22,
   },
   emptyContainer: {
     flex: 1,
@@ -371,65 +297,6 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     textAlign: 'center',
     marginTop: 100,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalDismissArea: {
-    flex: 1,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    minHeight: 300,
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  segueInput: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: '#333',
-    minHeight: 120,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    marginBottom: 16,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelModalButton: {
-    backgroundColor: '#f0f0f0',
-  },
-  saveModalButton: {
-    backgroundColor: '#007AFF',
-  },
-  cancelModalButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-  },
-  saveModalButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
   },
 });
 

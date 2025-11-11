@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, AccessibilityInfo } from 'react-native';
 
 const SetlistCard = ({ setlist, jokeCount, jokes = [], onPress, onEdit, onDelete }) => {
   const handleDelete = () => {
@@ -15,28 +15,58 @@ const SetlistCard = ({ setlist, jokeCount, jokes = [], onPress, onEdit, onDelete
 
   const getFullSetlistText = () => {
     let parts = [];
+    // Opening without label
     if (setlist.opening) parts.push(setlist.opening);
+    
+    // Jokes without labels, headings, or tags
     jokes.forEach((joke) => {
       let jokeParts = [];
       if (joke.setup) jokeParts.push(joke.setup);
-      if (joke.premise) jokeParts.push(joke.premise);
       if (joke.punchline) jokeParts.push(joke.punchline);
       if (jokeParts.length > 0) parts.push(jokeParts.join(' '));
       if (joke.segueAfter) parts.push(joke.segueAfter);
     });
+    
+    // Closing without label
     if (setlist.closing) parts.push(setlist.closing);
-    return parts.join(' ');
+    return parts.join('. ');
+  };
+
+  const getJokeTitles = () => {
+    const titles = jokes
+      .map((joke, index) => `${index + 1}. ${joke.title || 'Untitled'}`)
+      .join('. ');
+    return titles || 'No jokes in setlist';
+  };
+
+  const handleReadTitles = (e) => {
+    e.stopPropagation();
+    const titlesText = getJokeTitles();
+    AccessibilityInfo.announceForAccessibility(titlesText);
+  };
+
+  const handleCardPress = () => {
+    // Read the full setlist
+    const fullText = getFullSetlistText();
+    if (fullText) {
+      AccessibilityInfo.announceForAccessibility(fullText);
+    }
+    
+    // Then call the original onPress
+    if (onPress) {
+      onPress();
+    }
   };
 
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={onPress}
+      onPress={handleCardPress}
       activeOpacity={0.7}
       accessible={true}
-      accessibilityLabel={getFullSetlistText() || `${setlist.name || 'Unnamed Setlist'}, ${jokeCount} jokes`}
+      accessibilityLabel={`${setlist.name || 'Unnamed Setlist'}, ${jokeCount} jokes`}
       accessibilityRole="button"
-      accessibilityHint="Tap to view setlist details"
+      accessibilityHint="Tap to read and view setlist"
     >
       <View style={styles.content}>
         <Text style={styles.title}>{setlist.name || 'Unnamed Setlist'}</Text>
@@ -51,6 +81,15 @@ const SetlistCard = ({ setlist, jokeCount, jokes = [], onPress, onEdit, onDelete
       </View>
 
       <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.readButton]}
+          onPress={handleReadTitles}
+          accessibilityLabel="Read joke titles"
+          accessibilityRole="button"
+          accessibilityHint="Reads all joke titles in this setlist using TalkBack or VoiceOver"
+        >
+          <Text style={styles.actionButtonText}>🔊 Titles</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionButton, styles.editButton]}
           onPress={(e) => {
@@ -114,6 +153,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
+  },
+  readButton: {
+    backgroundColor: '#34C759',
+    marginRight: 'auto',
   },
   editButton: {
     backgroundColor: '#007AFF',

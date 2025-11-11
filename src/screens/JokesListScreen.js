@@ -38,6 +38,12 @@ const JokesListScreen = ({ navigation }) => {
     setSelectedJoke(null);
   };
 
+  // Filter out setlists that already contain the selected joke
+  const availableSetlists = setlists.filter(setlist => {
+    if (!selectedJoke) return true;
+    return !setlist.jokes?.some(jokeItem => jokeItem.jokeId === selectedJoke);
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -107,19 +113,21 @@ const JokesListScreen = ({ navigation }) => {
               </Text>
             </TouchableOpacity>
 
-            {setlists.length > 0 && (
+            {availableSetlists.length > 0 && (
               <Text style={styles.orDividerText}>or add to existing:</Text>
             )}
 
             <ScrollView style={styles.setlistList}>
-              {setlists.length === 0 ? (
+              {availableSetlists.length === 0 ? (
                 <View style={styles.noSetlistsContainer}>
                   <Text style={styles.noSetlistsText}>
-                    No setlists yet. Create one above!
+                    {setlists.length === 0 
+                      ? 'No setlists yet. Create one above!'
+                      : 'This joke is already in all your setlists!'}
                   </Text>
                 </View>
               ) : (
-                setlists.map((setlist) => (
+                availableSetlists.map((setlist) => (
                   <TouchableOpacity
                     key={setlist.id}
                     style={styles.setlistItem}

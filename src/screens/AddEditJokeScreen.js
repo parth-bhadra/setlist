@@ -16,32 +16,46 @@ const AddEditJokeScreen = ({ navigation, route }) => {
   const { jokeId } = route.params || {};
   const { createJoke, editJoke, getJokeById } = useApp();
   
+  const [title, setTitle] = useState('');
   const [setup, setSetup] = useState('');
-  const [premise, setPremise] = useState('');
   const [punchline, setPunchline] = useState('');
+  const [tags, setTags] = useState('');
 
   useEffect(() => {
     if (jokeId) {
       const joke = getJokeById(jokeId);
       if (joke) {
+        setTitle(joke.title || '');
         setSetup(joke.setup || '');
-        setPremise(joke.premise || '');
         setPunchline(joke.punchline || '');
+        setTags(joke.tags ? joke.tags.join(', ') : '');
       }
     }
   }, [jokeId]);
 
   const handleSave = async () => {
-    if (!setup && !premise && !punchline) {
-      Alert.alert('Empty Joke', 'Please add at least one part to the joke');
+    if (!title.trim()) {
+      Alert.alert('Missing Title', 'Please add a title for the joke');
+      return;
+    }
+
+    if (!setup && !punchline) {
+      Alert.alert('Empty Joke', 'Please add at least setup or punchline');
       return;
     }
 
     try {
+      // Parse tags from comma-separated string
+      const tagsList = tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+
       const jokeData = {
+        title: title.trim(),
         setup: setup.trim(),
-        premise: premise.trim(),
         punchline: punchline.trim(),
+        tags: tagsList,
       };
 
       if (jokeId) {
@@ -73,7 +87,23 @@ const AddEditJokeScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps='handled'
+        keyboardDismissMode='on-drag'
+      >
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>Title *</Text>
+          <TextInput
+            style={styles.titleInput}
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Enter joke title..."
+            returnKeyType="next"
+          />
+        </View>
+
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>Setup (Optional)</Text>
           <TextInput
@@ -81,18 +111,6 @@ const AddEditJokeScreen = ({ navigation, route }) => {
             value={setup}
             onChangeText={setSetup}
             placeholder="Enter the setup..."
-            multiline
-            textAlignVertical="top"
-          />
-        </View>
-
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Premise (Optional)</Text>
-          <TextInput
-            style={styles.input}
-            value={premise}
-            onChangeText={setPremise}
-            placeholder="Enter the premise..."
             multiline
             textAlignVertical="top"
           />
@@ -108,6 +126,21 @@ const AddEditJokeScreen = ({ navigation, route }) => {
             multiline
             textAlignVertical="top"
           />
+        </View>
+
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>Tags/Callbacks (Optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={tags}
+            onChangeText={setTags}
+            placeholder="Enter tag lines or callbacks after the punchline (separate with commas)"
+            multiline
+            textAlignVertical="top"
+          />
+          <Text style={styles.hint}>
+            Add tag lines or callbacks that follow the punchline (each separated by comma)
+          </Text>
         </View>
 
         <Text style={styles.hint}>
@@ -154,6 +187,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 400, // Extra padding for keyboard
   },
   fieldContainer: {
     marginBottom: 24,
@@ -163,6 +197,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
+  },
+  titleInput: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#333',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   input: {
     backgroundColor: '#fff',

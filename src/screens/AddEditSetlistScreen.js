@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,9 @@ import { useApp } from '../context/AppContext';
 const AddEditSetlistScreen = ({ navigation, route }) => {
   const { setlistId, preselectedJokeId } = route.params || {};
   const { createSetlist, editSetlist, getSetlistById, jokes, getJokeById, reorderJokesInSetlist, addJokeToSetlist, removeJokeFromSetlist } = useApp();
+  
+  const scrollViewRef = useRef(null);
+  const segueInputRefs = useRef({});
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -97,16 +100,42 @@ const AddEditSetlistScreen = ({ navigation, route }) => {
     setSetlistJokes(newJokes);
   };
 
+  const handleSegueChange = (jokeId, segueText) => {
+    setSetlistJokes(setlistJokes.map(item => 
+      item.jokeId === jokeId ? { ...item, segueAfter: segueText } : item
+    ));
+  };
+
+  const handleSegueFocus = (jokeId) => {
+    // Scroll to the segue input when focused
+    setTimeout(() => {
+      const inputView = segueInputRefs.current[jokeId];
+      if (inputView && scrollViewRef.current) {
+        inputView.measureLayout(
+          scrollViewRef.current,
+          (x, y) => {
+            scrollViewRef.current.scrollTo({
+              y: y - 100, // Offset to keep input visible above keyboard
+              animated: true
+            });
+          },
+          () => {} // Error callback
+        );
+      }
+    }, 100);
+  };
+
   const getJokePreview = (jokeId) => {
     const joke = getJokeById(jokeId);
     if (!joke) return 'Unknown joke';
     
+    if (joke.title) return joke.title;
+    
     let parts = [];
     if (joke.setup) parts.push(joke.setup);
-    if (joke.premise) parts.push(joke.premise);
     if (joke.punchline) parts.push(joke.punchline);
     const text = parts.join(' ');
-    return text.length > 80 ? text.substring(0, 80) + '...' : text;
+    return text.length > 80 ? text.substring(0, 80) + '...' : text || 'Untitled joke';
   };
 
   // Available jokes (not already in setlist)
@@ -118,6 +147,7 @@ const AddEditSetlistScreen = ({ navigation, route }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -131,7 +161,13 @@ const AddEditSetlistScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.content} 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps='handled'
+        keyboardDismissMode='on-drag'
+      >
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>Name *</Text>
           <TextInput
@@ -220,7 +256,29 @@ const AddEditSetlistScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <Text style={styles.jokePreview}>{getJokePreview(item.jokeId)}</Text>
+                <TouchableOpacity 
+                  onPress={() => navigation.navigate('AddEditJoke', { jokeId: item.jokeId })}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.jokePreview}>{getJokePreview(item.jokeId)}</Text>
+                </TouchableOpacity>
+                
+                <View 
+                  style={styles.segueInputContainer}
+                  ref={(ref) => segueInputRefs.current[item.jokeId] = ref}
+                  collapsable={false}
+                >
+                  <Text style={styles.segueLabel}>Segue to next (optional):</Text>
+                  <TextInput
+                    style={styles.segueInput}
+                    value={item.segueAfter || ''}
+                    onChangeText={(text) => handleSegueChange(item.jokeId, text)}
+                    onFocus={() => handleSegueFocus(item.jokeId)}
+                    placeholder="Enter segue to next joke..."
+                    multiline
+                    textAlignVertical="top"
+                  />
+                </View>
               </View>
             ))
           )}
@@ -324,6 +382,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 400, // Extra padding for keyboard
   },
   fieldContainer: {
     marginBottom: 24,
@@ -440,8 +499,28 @@ const styles = StyleSheet.create({
   },
   jokePreview: {
     fontSize: 14,
-    color: '#333',
+    color: '#007AFF',
     lineHeight: 20,
+    textDecorationLine: 'underline',
+  },
+  segueInputContainer: {
+    marginTop: 12,
+  },
+  segueLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 6,
+  },
+  segueInput: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 14,
+    color: '#333',
+    minHeight: 60,
+    borderWidth: 1,
+    borderColor: '#FFE0B2',
   },
   modalOverlay: {
     flex: 1,
