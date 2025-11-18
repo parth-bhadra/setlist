@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  AccessibilityInfo,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import JokeCard from '../components/JokeCard';
@@ -74,11 +73,11 @@ const SetlistDetailScreen = ({ navigation, route }) => {
       return (
         <TouchableOpacity
           style={styles.textCard}
-          onPress={() => AccessibilityInfo.announceForAccessibility(item.content)}
+          onPress={() => {}}
           activeOpacity={0.7}
           accessible={true}
-          accessibilityLabel="Opening"
-          accessibilityHint="Tap to read the opening"
+          accessibilityLabel={item.content}
+          accessibilityRole="text"
         >
           <Text style={styles.cardText}>{item.content}</Text>
         </TouchableOpacity>
@@ -89,11 +88,11 @@ const SetlistDetailScreen = ({ navigation, route }) => {
       return (
         <TouchableOpacity
           style={styles.textCard}
-          onPress={() => AccessibilityInfo.announceForAccessibility(item.content)}
+          onPress={() => {}}
           activeOpacity={0.7}
           accessible={true}
-          accessibilityLabel="Closing"
-          accessibilityHint="Tap to read the closing"
+          accessibilityLabel={item.content}
+          accessibilityRole="text"
         >
           <Text style={styles.cardText}>{item.content}</Text>
         </TouchableOpacity>
@@ -104,11 +103,11 @@ const SetlistDetailScreen = ({ navigation, route }) => {
       return (
         <TouchableOpacity
           style={styles.segueCard}
-          onPress={() => AccessibilityInfo.announceForAccessibility(item.content)}
+          onPress={() => {}}
           activeOpacity={0.7}
           accessible={true}
-          accessibilityLabel="Segue"
-          accessibilityHint="Tap to read the segue"
+          accessibilityLabel={item.content}
+          accessibilityRole="text"
         >
           <Text style={styles.segueCardText}>{item.content}</Text>
         </TouchableOpacity>

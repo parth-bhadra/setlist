@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "blind-comic-setlist",
-    "slug": "blind-comic-setlist",
+    "name": "Setlist",
+    "slug": "setlist",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

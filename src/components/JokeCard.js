@@ -29,9 +29,11 @@ const JokeCard = ({ joke, onEdit, onDelete, onPress, showActions = true, readTit
       const titleText = joke.title || 'Untitled joke';
       AccessibilityInfo.announceForAccessibility(titleText);
     } else {
-      // On all jokes screen, read full joke including tags
-      const fullText = getFullJokeText();
-      AccessibilityInfo.announceForAccessibility(fullText || joke.title || 'Empty joke');
+      // On all jokes screen, read title first, then full joke content
+      const title = joke.title || 'Untitled joke';
+      const content = getFullJokeText();
+      const fullReading = content ? `${title}. ${content}` : title;
+      AccessibilityInfo.announceForAccessibility(fullReading);
     }
     
     // Then call the original onPress if provided

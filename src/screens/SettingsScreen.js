@@ -208,7 +208,7 @@ const SettingsScreen = ({ navigation }) => {
       }
 
       text += '═'.repeat(40) + '\n';
-      text += `Created with Blind Comic Setlist 📱\n`;
+      text += `Created with Setlist 📱\n`;
 
       const fileName = `setlist-${setlist.name?.replace(/\s+/g, '-') || 'unnamed'}.txt`;
       const fileUri = FileSystem.documentDirectory + fileName;
