@@ -24,7 +24,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="exp+blind-comic-setlist"/>
+        <data android:scheme="exp+setlist"/>
       </intent-filter>
     </activity>
   </application>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, AccessibilityInfo } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
 const JokeCard = ({ joke, onEdit, onDelete, onPress, showActions = true, readTitleOnly = false }) => {
   const handleDelete = () => {
@@ -23,22 +23,22 @@ const JokeCard = ({ joke, onEdit, onDelete, onPress, showActions = true, readTit
   };
 
   const handleCardPress = () => {
-    // Read the joke when clicked
+    // Then call the original onPress if provided
+    if (onPress) {
+      onPress();
+    }
+  };
+
+  // Get the accessibility label based on context
+  const getAccessibilityLabel = () => {
     if (readTitleOnly) {
       // On setlist view, read only title
-      const titleText = joke.title || 'Untitled joke';
-      AccessibilityInfo.announceForAccessibility(titleText);
+      return joke.title || 'Untitled joke';
     } else {
       // On all jokes screen, read title first, then full joke content
       const title = joke.title || 'Untitled joke';
       const content = getFullJokeText();
-      const fullReading = content ? `${title}. ${content}` : title;
-      AccessibilityInfo.announceForAccessibility(fullReading);
-    }
-    
-    // Then call the original onPress if provided
-    if (onPress) {
-      onPress();
+      return content ? `${title}. ${content}` : title;
     }
   };
 
@@ -48,9 +48,9 @@ const JokeCard = ({ joke, onEdit, onDelete, onPress, showActions = true, readTit
       onPress={handleCardPress}
       activeOpacity={0.7}
       accessible={true}
-      accessibilityLabel={joke.title || 'Untitled joke'}
+      accessibilityLabel={getAccessibilityLabel()}
       accessibilityRole="button"
-      accessibilityHint="Tap to read and edit this joke"
+      accessibilityHint="Tap to edit this joke"
     >
       <View style={styles.content}>
         {joke.title ? (

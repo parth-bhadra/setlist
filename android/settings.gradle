@@ -31,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'blind-comic-setlist'
+rootProject.name = 'Setlist'
 
 expoAutolinking.useExpoVersionCatalog()
 

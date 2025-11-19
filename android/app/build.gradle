@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.parthbhadra.blindcomicsetlist'
+    namespace 'com.parthbhadra.setlist'
     defaultConfig {
-        applicationId 'com.parthbhadra.blindcomicsetlist'
+        applicationId 'com.parthbhadra.setlist'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

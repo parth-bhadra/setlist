@@ -1,4 +1,4 @@
-package com.parthbhadra.blindcomicsetlist
+package com.parthbhadra.setlist
 
 import android.app.Application
 import android.content.res.Configuration

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Setlist",
-    "slug": "setlist",
+    "slug": "blind-comic-setlist",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.parthbhadra.blindcomicsetlist",
+      "bundleIdentifier": "com.parthbhadra.setlist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -25,7 +25,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.parthbhadra.blindcomicsetlist"
+      "package": "com.parthbhadra.setlist"
     },
     "web": {
       "favicon": "./assets/favicon.png"

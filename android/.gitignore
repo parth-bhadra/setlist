@@ -12,13 +12,5 @@ local.properties
 *.hprof
 .cxx/
 
-# Keystore files - DO NOT COMMIT THESE!
-*.keystore
-*.jks
-*.p12
-*.key
-release.keystore
-debug.keystore
-
 # Bundle artifacts
 *.jsbundle
